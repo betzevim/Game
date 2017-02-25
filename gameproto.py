@@ -27,7 +27,7 @@ friction = 0.85
 
 lev = 0
 
-lives = 100 # increase this to make the game easier
+lives = 1 # increase this to make the game easier
 
 def constrain(val, minny, maxxy):
 	if minny > val: return minny
