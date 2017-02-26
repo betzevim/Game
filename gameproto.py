@@ -23,7 +23,7 @@ x_speed = 0
 y_speed = 0
 x_accel = 0
 y_accel = 0
-friction = 0.85
+friction = 0.88
 
 lev = 0
 
@@ -60,6 +60,7 @@ def addball(Type):
 
 
 sld = 0
+paused = False
 
 def reset_balls(lev_up):
 	del balls[:]
@@ -71,6 +72,8 @@ def reset_balls(lev_up):
 	screen.fill(WHITE)
 	pygame.display.flip()
 	clock.tick(FRAMES_PER_SECOND)
+	x_speed = 0
+	y_speed = 0
 	if lev_up:
 		lev += 1
 		dmgB = lev
@@ -98,72 +101,77 @@ reset_balls(True)
 while 1:
 	deltat = clock.tick(FRAMES_PER_SECOND)
 	pygame.event.pump()
-	x_accel = x_speed * 0.1
-	y_accel = y_speed * 0.1
-	x_accel = abs(x_accel)
-	y_accel = abs(y_accel)
-	x_accel = constrain(x_accel, 3, 5)
-	y_accel = constrain(y_accel, 3, 5)
 	Xkeys = pygame.key.get_pressed()
-	if Xkeys[K_RIGHT]: x_speed += x_accel
-	if Xkeys[K_LEFT]: x_speed -= x_accel
-	if Xkeys[K_UP]: y_speed -= y_accel
-	if Xkeys[K_DOWN]: y_speed += y_accel
-	if Xkeys[K_ESCAPE]: sys.exit(0)
-	x_speed *= friction
-	y_speed *= friction
-	x += x_speed
-	y += y_speed
-	x_speed = constrain(x_speed, -20, 20)
-	y_speed = constrain(y_speed, -20, 20)
-	screen.fill(WHITE)
-	delete = 0
-	cntdwn = ''
-	if sld > 0:
-		sld -= 1
-		if sld == 0:
-			change_sp(10) 
-	del_slow = False
-	for ball in balls:
-		ball['x'] += ball['xsp']
-		ball['y'] += ball['ysp']
-		if ball['x'] < ball_rad or ball['x'] >= (screen.get_width() - ball_rad) or random.uniform(1, 50) < 1.5:
-			ball['xsp'] *= -1
-		if ball['y'] < ball_rad or ball['y'] >= (screen.get_height() - ball_rad) or random.uniform(1, 50) < 1.5:
-			ball['ysp'] *= -1
-		ball['x'] = constrain(ball['x'], ball_rad, screen.get_width() - ball_rad)
-		ball['y'] = constrain(ball['y'], ball_rad, screen.get_height() - ball_rad)
-		pygame.draw.circle(screen, ball['color'], (int(ball['x']),int(ball['y'])), ball_rad)
-		xdis = x - ball['x']
-		ydis = y - ball['y']
-		if ydis * ydis + xdis * xdis < ball_rad * 4 * ball_rad:
-			if ball['Type'] == 1:
-				reset_balls(True)
-			elif ball ['Type'] == 3:
-				sld += 400
-				change_sp(5)
-				del_slow = True
-			elif ball['Type'] == 4:
-				B_live -= 1
-				if lives < 10:
-					lives += 1
-				delete = ball
-			else:
-				lives -= 1
-				dmgB -= 1
-				reset_balls(False)
-				if lives < 1:
-					sys.exit(0)
-	if delete != 0: balls.remove(delete)
-	if del_slow:
-		for i in reversed(range(len(balls))):
-			if balls[i]['Type'] == 3:
-				balls.remove(balls[i])
-	if sld > 0:
-		cntdwn = '  DECREASED SPEED FOR ' + str(sld / FRAMES_PER_SECOND)
-	text = font.render('LEVEL: ' + str(lev) + '  LIVES: ' + str(lives) + cntdwn, False, (0, 0, 0))
-	screen.blit(text, (0, 0))
-	x = constrain(x, ball_rad, screen.get_width() - ball_rad)
-	y = constrain(y, ball_rad, screen.get_height() - ball_rad)
-	pygame.draw.circle(screen, (0, 0, 0), (int(x), int(y)), ball_rad)
-	pygame.display.flip()
+	for event in pygame.event.get():
+		if event.type == KEYUP:
+			if (event.key == K_p or event.key == K_SPACE or event.key == K_LSHIFT):
+				paused = not paused
+	if not paused:
+		x_accel = x_speed * 0.1
+		y_accel = y_speed * 0.1
+		x_accel = abs(x_accel)
+		y_accel = abs(y_accel)
+		x_accel = constrain(x_accel, 3, 5)
+		y_accel = constrain(y_accel, 3, 5)
+		if Xkeys[K_RIGHT]: x_speed += x_accel
+		if Xkeys[K_LEFT]: x_speed -= x_accel
+		if Xkeys[K_UP]: y_speed -= y_accel
+		if Xkeys[K_DOWN]: y_speed += y_accel
+		if Xkeys[K_ESCAPE]: sys.exit(0)
+		x_speed *= friction
+		y_speed *= friction
+		x += x_speed
+		y += y_speed
+		x_speed = constrain(x_speed, -20, 20)
+		y_speed = constrain(y_speed, -20, 20)
+		screen.fill(WHITE)
+		delete = 0
+		cntdwn = ''
+		if sld > 0:
+			sld -= 1
+			if sld == 0:
+				change_sp(10) 
+		del_slow = False
+		for ball in balls:
+			ball['x'] += ball['xsp']
+			ball['y'] += ball['ysp']
+			if ball['x'] < ball_rad or ball['x'] >= (screen.get_width() - ball_rad) or random.uniform(1, 50) < 1.5:
+				ball['xsp'] *= -1
+			if ball['y'] < ball_rad or ball['y'] >= (screen.get_height() - ball_rad) or random.uniform(1, 50) < 1.5:
+				ball['ysp'] *= -1
+			ball['x'] = constrain(ball['x'], ball_rad, screen.get_width() - ball_rad)
+			ball['y'] = constrain(ball['y'], ball_rad, screen.get_height() - ball_rad)
+			pygame.draw.circle(screen, ball['color'], (int(ball['x']),int(ball['y'])), ball_rad)
+			xdis = x - ball['x']
+			ydis = y - ball['y']
+			if ydis * ydis + xdis * xdis < ball_rad * 4 * ball_rad:
+				if ball['Type'] == 1:
+					reset_balls(True)
+				elif ball ['Type'] == 3:
+					sld += 400
+					change_sp(5)
+					del_slow = True
+				elif ball['Type'] == 4:
+					B_live -= 1
+					if lives < 10:
+						lives += 1
+					delete = ball
+				else:
+					lives -= 1
+					dmgB -= 1
+					reset_balls(False)
+					if lives < 1:
+						sys.exit(0)
+		if delete != 0: balls.remove(delete)
+		if del_slow:
+			for i in reversed(range(len(balls))):
+				if balls[i]['Type'] == 3:
+					balls.remove(balls[i])
+		if sld > 0:
+			cntdwn = '  DECREASED SPEED FOR ' + str(sld / FRAMES_PER_SECOND)
+		text = font.render('LEVEL: ' + str(lev) + '  LIVES: ' + str(lives) + cntdwn, False, (0, 0, 0))
+		screen.blit(text, (0, 0))
+		x = constrain(x, ball_rad, screen.get_width() - ball_rad)
+		y = constrain(y, ball_rad, screen.get_height() - ball_rad)
+		pygame.draw.circle(screen, (0, 0, 0), (int(x), int(y)), ball_rad)
+		pygame.display.flip()
